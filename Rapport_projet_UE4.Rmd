@@ -1,0 +1,180 @@
+---
+title: "Rapport projet UE4 Entrepôts et fouilles de données"
+author: "Akram REDJDAL & Imane ZEMIHI"
+date: "06/01/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r source, echo=FALSE, message=FALSE}
+source("App.R")
+
+```
+
+
+#Introduction:
+La fouille de données (data mining) permet de faire un lien entre les statistiques et les technologies de l’information (base de données, intelligence artificielle, apprentissage automatique (machine learning), utilisée pour la recherche d’informations dans les grandes bases de données médicales ou de santé.
+Les outils de collecte automatique des données et bases de données permettent de stocker dans des entrepôts d’énormes masses de données. La fouille de données et les entrepôts permettent l’extraction de connaissances.  
+L’utilisation de ces masses de données, issues de structures médicales, peut permettre d’acquérir de nouvelles connaissances via différents types d’études. Notamment avec le logiciel R.
+
+Dans ce projet on est amenées à Construire un mini-entrepôt de données environnementales au format i2b2
+Construire une application shiny pour explorer notre entrepôt de données
+Analysez la corrélation entre exposition environnementales et répartition des patients atteints de la maladie X par des méthodes de statistiques spatiales.
+
+
+#Description des données
+Pour l'aboutissement de notre projet nous avons choisis deux jeux de données :
+-polluants par établissements avec localisation établissements qui se compose de 9572 observations et 6 variables et 14954 observations et 15 variables provenant du site :
+https://public.opendatasoft.com/explore/dataset/registre-francais-des-emission-polluantes-etablissements/table/
+-Radon se compose de 36104 observations et 5 variables et provient du site :
+https://www.data.gouv.fr/fr/datasets/connaitre-le-potentiel-radon-de-ma-commune/
+
+Le registre des rejets et des transferts de polluants (RRTP) est un inventaire national des substances chimiques et/ou des polluants potentiellement dangereux rejetés dans l'air, l'eau et le sol de la production et du traitement des déchets dangereux et non dangereux 
+Les attributs de cette base sont :
+
+```{r polluantParEtablissement,echo=FALSE}
+summary(polluantParEtablissement)
+
+```
+
+```{r localisationParEtablissement,echo=FALSE}
+
+summary(localisationParEtablissement)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Le radon qui est un gaz radioactif produit par la désintégration naturelle de l’uranium présent dans les roches. Cancérigène pulmonaire, il présente un risque pour la santé lorsqu’il s’accumule dans les bâtiments. L’étude de jeux de données nous permet de voir le potentiel radon dans chaque commune, les attributs de cette base de données sont :
+
+```{r radon,echo=FALSE}
+summary(radon)
+
+```
+
+# Création de l'entrepot de données:
+Après avoir choisi les deux jeux de données, bien les analyser et étudier on est passé à l’étape de la construction de notre entrepôt de données à partir des deux jeux donnés 
+Et cela au format i2b2 (Informatics for Integrating Biology & the Bedside)
+Donc la fouille de données qui consistait à analyser les jeux de données choisit nous a permis d’extraire des connaissances. Regrouper des techniques statistiques et ainsi pouvoir construire notre propre entrepôt de données.
+Les données de notre entrepôt au format i2b2 résident est décrite dans le schéma en étoile suivant qui est la structure de données la plus utilisée et la plus appropriée aux requêtes et analyses des utilisateurs d’entrepôts de données
+
+```{r scheme, echo=FALSE, fig.cap="A caption", out.width = '100%',echo=FALSE}
+knitr::include_graphics("schema_etoile.png")
+
+```
+
+Comme le décrit le schéma ci-dessus :
+La Table centrale « commune » qui contient les données observables les faits qui sont numérique et d’ordre quantitatif que l’on possède que l’on veut étudier (classe Radon, nombre établissement par département et commune …), selon divers axes d’analyse les dimensions qui sont les tables de dimensions (informations, localisation établissement, localisation, établissement polluant) selon lesquels on veut étudier les données observables (les faits).
+
+ 
+1-Création de la base de données:
+On a créé la table Établissement qui est la jointure entre la table polluant Par Établissement et localisation Par Établissement 
+Ensuite on a fait la jointure de la table crée et la table radon selon le Département.
+
+```{r Etablissements,echo=FALSE}
+my_df_print(Etablissements[1:10,])
+```
+**Table 1** : Etablissement Polluant ainsi que leur localisation
+```{r EtablissementRadon,echo=FALSE}
+my_df_print(EtablissementRadon[1:10,])
+```
+**Table 2** :Etablissement Polluant avec Potentiel Radon
+On a ensuite utilisé cette table ( colonne coordonnées sachant que la longitude et la latitude sont séparé par une virgule) pour crée un spatial polygon data frame pour modéliser nos points dans la carte 
+# Conception des cartes de France en fonctions de plusieurs attributs  
+Concernant les données geographiques nous babons importé un fichier qu'on trouvé sur GiTHUB qui est un Spatial Polygon Data Frame , afin d'avoir les coordonnées des polygones selon les departements a partir des codes INSEE des communes , nous avons par la suite fait une jointure entre les données geographique et le potentiel radon ainsi que l'incidence de la maladie X .
+
+On a réalisé une première carte qui représente le potentiel Radon dans chaque département 
+
+```{r carte ,echo=FALSE}
+(carte )
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Carte 1**Potentiel Radon par Departement
+La seconde carte représente le ratio de l'évènement de la maladie X selon les Régions
+
+```{r carte2}
+(carte2)
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Carte 2**Incidence Maladie par Departement
+La troisième carte représente la carte de France par département avec des Marqueurs qui font référence à tous les établissements
+
+```{r carte3}
+(carte3)
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Carte 3**Etablissement Polluants
+
+# Réalisation d’histogramme 
+Nous avons choisis pour analysé les données de representé un histogramme interactif selon le departement : 
+on peux choisir l'axe des X de notre Histogramme selon : Nom etablissement , Libellé APE ou code EPRTR , en y ajoutant sur Shiny un tableau pour bien lire les données
+```{r pressure, echo=FALSE, fig.cap="A caption", out.width = '100%',echo=FALSE}
+knitr::include_graphics("histogramme.png")
+
+```
+# Description de l’application shiny
+
+L’utilisations de l’application shiny nous a permis d’avoir une seule carte interactive avec laquelle on peut changer à chaque fois l’attribut que l’on voudra étudier et représenter.
+
+Mais aussi réaliser plusieurs histogrammes et cela en choisissant à chaque fois ce qu’on veut représenter, donc changer le libellé des axis selon le Libellé APE, Libelle Eprtr, Nom établissement, Code Eprtr
+
+Nous avons choisi de sélectionne nos valeurs par départements on a opté pour cela, car pour région il y’a énormément de valeurs et commune ou contrairement on a peu de valeurs.
+Donc choisir les valeurs de nos tables par département et mettre les communes en variable de couleurs étais le choix optimal que nous avons jugé objectif et satisfaisant pour notre application.
+Vous Pouvez trouver l'application Shiny dans le fichier AppShiny
+```{r shiny,out.width = '100%',out.lentgh = '100%',echo=FALSE}
+(APP)
+```
+#Etude de l’Autocorrelation 
+Afin d'etudier l'autocorrelation de l'incidence de la maladie X nous avons dabord construit un	voisinage	de	type		queen	
+```{r voisinage,echo=FALSE}
+
+plot(departements)	
+plot(voisinQ,	coords,	add=T,	col=2)	
+legend("bottom",c("queen"),	
+       text.col=c(2,3))	
+```
+ensuite nous avons Crée une matrice de contiguité standardisée	(type	queen) pour pouvoir etudier l'autocorrelation spatiale par le test de Morane
+```{r matriceConguite,echo=FALSE}
+matrice_conguiteQ
+```
+# Tests d’Autocorrelation Spatial
+Nous avons effectué le test de Morane , avec le bootstrap , nous avons obtenu une p.value assez ellevé et un indice de Morane Negatif ce qui explique donc l'absence d'autocorrelation spatiale pour l'incidance de la maladie X en fonction des departements
+```{r moran,echo=FALSE}
+moran.test(ratioEvenement$ratio,	listw=matrice_conguiteQ,	alternative="two.sided",	randomisation=FALSE)	
+hist(bootstrap$res, freq=TRUE,breaks=20, xlab="Simulated Moran's I")
+abline(v=0, col='red')
+
+```
+# Tests de gary
+Meme resultats , qui expliquee l'absence d'autocorrelation spatial par rapport a l'incidence de la maladie X
+```{r gary,echo=FALSE}
+geary.test(ratioEvenement$ratio,	listw=matrice_conguiteQ,	alternative="two.sided")
+
+```
+#Autocorrélogramme
+Nous avons ensuite effectué un autocorrelogramee pour confirmer l'Hypotese que l'incidence de la maladie est independante de ca localisation geographique
+```{r autocorrelograme,echo=FALSE}
+plot(cor)
+```
+#Test de Stone : 
+Nous avons appliquer le test de Stone sur l'incidance de la maladie X par rapport au potentiel radon par departement la p.value est toujours tres elevé ce qui montre l'absence d'autocorrelation spatiale entre ces 2 attributs , Voici Un Exemple pour Paris
+```{r stone,echo=FALSE}
+stone.test(Observed~offset(log(Expected)), stoneTest, model="poisson", R=99,region="paris", lambda=1)
+```
+
+#Merci vous Pouvez trouvez l'application Shiny sur le fichier Appli Shiny
+
+
+
+
+
+
+
+
