@@ -1,0 +1,197 @@
+---
+title: "Rapport projet UE4 Entrepôts et fouilles de données"
+author: "Akram REDJDAL & Imane ZEMIHI"
+date: "06/01/2019"
+runtime: shiny
+output: 
+  ioslides_presentation:
+    css: temp.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+```{r source, echo=FALSE, message=FALSE, warning=FALSE}
+source("App.R")
+
+```
+
+##Introduction
+Construire un mini-entrepôt de données environnementales au format i2b2
+
+* Table de Fait :
+  + Table centrale contien des clefs associés aux dimensions 
+  + valeur numeriques de  ce qu'on veux analyser
+* Table de dimensions : 
+  + contiennent les axes d'analyses et details sur les faits
+  + valeur descriptives de la table des fait
+  
+## Description des données :
+```{r polluantParEtablissement,echo=FALSE}
+summary(polluants)
+
+```
+**Liste des Etablissements polluants selon GeoRisque**
+
+## localisation etablissement
+
+```{r localisationParEtablissement,echo=FALSE}
+
+summary(localisationParEtablissement)
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Liste des Etablissements avec leur localisation**
+
+## potentiel Radon
+
+```{r radon,echo=FALSE}
+summary(radon)
+
+```
+**Potentiel Radon**
+
+## Schema Etoile 
+```{r schema, echo=FALSE, fig.cap="Schema Etoile", fig.height=6, fig.width=6}
+knitr::include_graphics("schema_etoile.png")
+```
+** Schema Etoile **
+
+## Tables Construites
+
+```{r summary, echo=FALSE}
+names(EtablissementRadon@data)
+
+```
+** Entrepot de données **
+
+## Carte Interactives
+ * Spatial Polygon DataFrame :
+      + Import des données geographiques par departement 
+ * Spatial Points DataFrame :
+      + A Partir de La table construite
+
+## Carte  Maladie
+
+```{r carteMaladieDepartement, echo=FALSE, fig.align="center", fig.height=6, fig.width=8}
+
+carteMaladieDepartement
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Carte 1**Incidence Maladie par Departement
+
+## Carte Potentiel Radon
+
+```{r carteRadonDepartement, echo=FALSE, fig.align="center", fig.height=6, fig.width=8}
+carteRadonDepartement 
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Carte 2**Potentiel Radon par Departement
+
+
+## Carte Etablissements
+
+```{r carteEtablissements, echo=FALSE, fig.align="center", fig.height=6, fig.width=8}
+carteEtablissements
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Carte 3**Etablissement Polluants
+
+## Analyses de données
+
+```{r Histogramme, echo=FALSE, fig.cap="Histogramme d'analyse", out.width='100%'}
+knitr::include_graphics("histogramme.png")
+
+```
+**Analyses de données**
+
+
+##
+```{r shiny, echo=FALSE, fig.align="center"}
+shinyApp
+```
+
+## Test d'autocorrelation Spatial
+ * voisinage type Queen
+ * Test de Morane
+    + Bootstrap
+ * Autocorrelogram
+ * Test de Stone 
+
+## Voisinage de type QUEEN :
+
+```{r voisinage,echo=FALSE}
+
+plot(departements)	
+plot(voisinQ,	coords,	add=T,	col=2)	
+legend("bottom",c("queen"),	
+       text.col=c(2,3))	
+```
+**Voisinage de type QUEEN **
+
+## Test de Morane 
+
+```{r matriceConguite, echo=FALSE, message=FALSE}
+moran.test(ratioEvenement$ratio,	listw=matrice_conguiteQ,	alternative="two.sided",	randomisation=FALSE)	
+```
+**Test de Morane**
+
+## Histogramme du Bootstrap
+
+```{r moran,echo=FALSE}
+
+hist(bootstrap$res, freq=TRUE,breaks=20, xlab="Simulated Moran's I")
+abline(v=0, col='red')
+
+```
+**Histogramme de Bootstrap**
+
+## Tests de geary
+
+```{r gary,echo=FALSE}
+geary.test(ratioEvenement$ratio,	listw=matrice_conguiteQ,	alternative="two.sided")
+
+```
+**Test de Geary**
+
+## Autocorrelogramme
+
+```{r autocorrelograme, echo=FALSE, fig.height=5, fig.width=8, message=TRUE, warning=TRUE, paged.print=FALSE}
+plot(cor)
+```
+**Autocorrelogramme**
+
+## Test de Stone :
+Exemple pour Paris
+
+```{r stone, echo=FALSE, fig.height=5, fig.width=8, message=TRUE, warning=TRUE, paged.print=FALSE}
+stone.test(Observed~offset(log(Expected)), stoneTest, model="poisson", R=99,region="paris", lambda=1)
+```
+**Test de Stone**
+
+
+## Merci
+Merci de votre Attention
+<!---
+Ces 2 chuncks sont optionnel ils corrigent un bug que l'on n'ai pas pu identifier : quand on knir le rapport ou la presentation ca donne un bon output HTML mais parcontre un documents incomplet sur Rstudio (run document) , l'ajout de ces 2 chuncks est une solution a ce probléme 
+-->
+##
+
+```{r autocorrelograme2, echo=FALSE, fig.height=5, fig.width=8, message=TRUE, warning=TRUE, paged.print=FALSE}
+plot(cor)
+```
+**bye**
+
+##
+Exemple pour Paris
+
+```{r stone2, echo=FALSE, fig.height=5, fig.width=8, message=TRUE, warning=TRUE, paged.print=FALSE}
+stone.test(Observed~offset(log(Expected)), stoneTest, model="poisson", R=99,region="seinesaintdenis", lambda=1)
+```
+**bye**
+
